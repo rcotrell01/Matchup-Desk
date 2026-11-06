@@ -71,6 +71,7 @@ button{font:700 12px var(--head);text-transform:uppercase;letter-spacing:.12em;c
 .slot:first-of-type{border-top:0}
 .slot .sd{font:700 11px var(--head);min-width:18px;color:var(--mute)}
 .slot .tn{overflow-wrap:anywhere;line-height:1.2}
+.slot .rec{display:block;font:italic 400 11px var(--head);color:var(--mute);margin-top:2px}
 .slot .pp{font-size:13px}
 .slot.empty{color:var(--mute);cursor:default;font-style:italic}
 .slot.win{background:var(--wash);font-weight:700}
@@ -111,8 +112,8 @@ button{font:700 12px var(--head);text-transform:uppercase;letter-spacing:.12em;c
 .cg details label{display:flex;flex-direction:column;gap:3px;margin-top:6px;font:700 9px var(--head);text-transform:uppercase;letter-spacing:.12em;font-style:normal;color:var(--ink)}
 .cg details select{font-size:12px;padding:6px 5px}
 .cg .tag2{font:700 9px var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);padding:3px 8px 0}
-[hidden]{display:none!important}
 body{margin:0}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -192,7 +193,7 @@ body{margin:0}
         <p style="text-align:center;margin:10px 0 0"><button type="button" id="bReset" class="ghost" style="background:transparent;color:var(--ink);border:1px solid var(--ink)">Reset to the model's 12</button></p>
       </section>
       <div class="board" id="board"></div>
-      <p class="note">Seeds 1 to 4 get a bye. In the first round the higher seed hosts, so that win % includes home field. Every later round is a neutral site.</p>
+      <p class="note">Seeds 1 to 4 get a bye. In the first round the higher seed hosts, so that win % includes home field. Every later round is a neutral site. The record under a team is its projected final record in the seasons where it gets in the way shown, and appears only where the team first enters the bracket.</p>
     </div>
   </div>
 </div>
@@ -254,6 +255,7 @@ render();
 
 /* ---------- bracket ---------- */
 const FIELD = [["Miami","ACC champ",94.7],["LSU","SEC champ",73.4],["Georgia","At-large",82],["Notre Dame","At-large",88],["UCLA","At-large",75.9],["Ohio State","At-large",72.8],["Utah","Big 12 champ",69.5],["Indiana","Big Ten champ",71.2],["Texas","At-large",47.1],["Alabama","At-large",76.8],["Ole Miss","At-large",58.5],["Boise State","G6 champ",35.1]];      // the model's projected 12, seed 1 first: [team, role, playoff %]
+const CCG = new Set(["Georgia", "LSU", "UCLA", "Indiana", "Utah", "BYU", "Miami", "Wake Forest", "New Mexico", "North Dakota State", "North Texas", "Memphis", "Louisiana Tech", "James Madison", "Toledo", "Ohio", "Liberty", "Jacksonville State", "Boise State", "Oregon State"]);   // teams in their conference's most likely title game
 const MODEL_SEEDS = FIELD.map(f=>f[0]);
 let mode='model', seeds=MODEL_SEEDS.slice(), picks={};
 const GAMES=[
@@ -278,7 +280,9 @@ function slotHtml(g,side){
   const mine=side==='a'?p:(p===null?null:1-p);
   const cls=pick?(pick===t?' win':' lose'):'';
   const star=(mode==='model'&&sl[0]==='s'&&/champ/.test(FIELD[sl[1]-1][1]))?' ★':'';
-  return '<button class="slot'+cls+'" data-g="'+g.id+'" data-t="'+esc(t)+'"><span class="sd">'+seedOf(t)+'</span><span class="tn">'+esc(t)+star+'</span><span class="pp">'+(mine===null?'':Math.round(mine*100)+'%')+'</span></button>';
+  const f=sl[0]==='s'?FIELD.find(x=>x[0]===t):null;
+  const rec=(f&&f[3]!=null&&f[3]!=='')?'<span class="rec">'+Math.round(f[3])+'\u2013'+Math.round(f[4])+(CCG.has(t)?' \u00b7 incl. conf. championship':'')+'</span>':'';
+  return '<button class="slot'+cls+'" data-g="'+g.id+'" data-t="'+esc(t)+'"><span class="sd">'+seedOf(t)+'</span><span class="tn">'+esc(t)+star+rec+'</span><span class="pp">'+(mine===null?'':Math.round(mine*100)+'%')+'</span></button>';
 }
 function drawBoard(){
   let html='';
